@@ -45,6 +45,7 @@ body {
 }
 
 input,
+textarea,
 button {
   font: inherit;
   color: inherit;
@@ -182,6 +183,113 @@ kbd {
 
 .item-row {
   padding: 4px 0;
+}
+
+.add-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.template-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 7px 10px;
+  text-align: left;
+  background: var(--input);
+}
+
+.template-badge {
+  flex-shrink: 0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-soft);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.template-preview {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.template-lines {
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.template-editor {
+  width: 100%;
+  min-height: 320px;
+  font-family: inherit;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--input);
+  outline: none;
+  resize: vertical;
+  line-height: 1.5;
+  user-select: text;
+}
+
+.template-editor:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.template-editor::placeholder {
+  color: var(--muted);
+}
+
+/* ---------- Template page ---------- */
+
+.template-page-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.template-page-head h1 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.template-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.template-fields {
+  display: grid;
+  grid-template-columns: 1fr 180px;
+  gap: 12px;
+}
+
+.template-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.template-form label > span {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.template-meta {
+  color: var(--muted);
+  font-size: 12px;
 }
 
 .code-input {
@@ -385,6 +493,16 @@ html[data-window="picker"] body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.picker-tag {
+  margin-left: auto;
+  padding-left: 8px;
+  flex-shrink: 0;
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 .picker-row.selected .picker-label {

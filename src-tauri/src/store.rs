@@ -18,6 +18,18 @@ pub struct Item {
     pub value: String,
     #[serde(default)]
     pub code: Option<String>,
+    #[serde(default)]
+    pub kind: ItemKind,
+}
+
+/// `Text` is a one-line value (a link, an id); `Template` is free-form
+/// multi-line text such as an email or notes.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum ItemKind {
+    #[default]
+    Text,
+    Template,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -48,6 +60,7 @@ impl Default for Data {
             label: label.into(),
             value: value.into(),
             code: Some(code.into()),
+            kind: ItemKind::Text,
         };
         Data {
             version: 1,
@@ -55,6 +68,14 @@ impl Default for Data {
                 item("GitHub", "https://github.com/", ":gh"),
                 item("LinkedIn", "https://www.linkedin.com/in/", ":li"),
                 item("X", "https://x.com/", ":x"),
+                Item {
+                    kind: ItemKind::Template,
+                    ..item(
+                        "Follow-up email",
+                        "Hi there,\n\nThanks for your time today. Here are the links I mentioned:\n- GitHub: https://github.com/\n- LinkedIn: https://www.linkedin.com/in/\n\nBest regards,",
+                        ":mail",
+                    )
+                },
             ],
             settings: Settings {
                 hotkey: DEFAULT_HOTKEY.into(),
@@ -111,6 +132,10 @@ pub fn normalize(items: Vec<Item>) -> Vec<Item> {
                 .code
                 .map(|c| c.trim().to_string())
                 .filter(|c| !c.is_empty());
+            if item.kind == ItemKind::Text {
+                // A one-line field can't hold line breaks; drop any that slipped in.
+                item.value = item.value.replace(['\r', '\n'], "");
+            }
             if item.id.is_empty() {
                 item.id = new_id();
             }
@@ -164,6 +189,7 @@ mod tests {
             label: label.into(),
             value: "v".into(),
             code: code.map(Into::into),
+            kind: ItemKind::Text,
         }
     }
 

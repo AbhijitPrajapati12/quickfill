@@ -103,6 +103,7 @@ export default function Picker() {
               }}
             >
               <span className="picker-label">{item.label}</span>
+              {item.kind === "template" && <span className="picker-tag">template</span>}
             </li>
           ))}
         </ul>

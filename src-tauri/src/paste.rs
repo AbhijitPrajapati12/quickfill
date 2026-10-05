@@ -22,7 +22,7 @@ pub fn paste_text(text: &str) -> Result<(), String> {
     clipboard
         .set()
         .exclude_from_history()
-        .text(text.to_owned())
+        .text(to_crlf(text))
         .map_err(|e| format!("Couldn't set clipboard: {e}"))?;
 
     wait_for_modifiers_released();
@@ -33,6 +33,12 @@ pub fn paste_text(text: &str) -> Result<(), String> {
         let _ = clipboard.set().exclude_from_history().text(previous);
     }
     Ok(())
+}
+
+/// Windows apps expect CRLF line endings; some (older editors, many web
+/// forms) collapse a bare LF into nothing.
+fn to_crlf(text: &str) -> String {
+    text.replace("\r\n", "\n").replace('\n', "\r\n")
 }
 
 pub fn send_backspaces(count: usize) {

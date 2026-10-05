@@ -1,10 +1,14 @@
 import { invoke } from "@tauri-apps/api/core";
 
+/** "text" is a one-line value; "template" is multi-line (emails, notes). */
+export type ItemKind = "text" | "template";
+
 export interface Item {
   id: string;
   label: string;
   value: string;
   code?: string | null;
+  kind?: ItemKind;
 }
 
 export interface Settings {
