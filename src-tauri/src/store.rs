@@ -55,28 +55,15 @@ pub struct Data {
 
 impl Default for Data {
     fn default() -> Self {
-        let item = |label: &str, value: &str, code: &str| Item {
-            id: new_id(),
-            label: label.into(),
-            value: value.into(),
-            code: Some(code.into()),
-            kind: ItemKind::Text,
-        };
         Data {
             version: 1,
-            items: vec![
-                item("GitHub", "https://github.com/", ":gh"),
-                item("LinkedIn", "https://www.linkedin.com/in/", ":li"),
-                item("X", "https://x.com/", ":x"),
-                Item {
-                    kind: ItemKind::Template,
-                    ..item(
-                        "Follow-up email",
-                        "Hi there,\n\nThanks for your time today. Here are the links I mentioned:\n- GitHub: https://github.com/\n- LinkedIn: https://www.linkedin.com/in/\n\nBest regards,",
-                        ":mail",
-                    )
-                },
-            ],
+            items: vec![Item {
+                id: new_id(),
+                label: "GitHub".into(),
+                value: "https://github.com/".into(),
+                code: Some(":gh".into()),
+                kind: ItemKind::Text,
+            }],
             settings: Settings {
                 hotkey: DEFAULT_HOTKEY.into(),
                 autostart: false,
