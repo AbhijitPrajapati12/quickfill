@@ -17,6 +17,7 @@ Applying to jobs means typing the same GitHub, LinkedIn and X links into form af
 - **Hotkey popup.** Press your shortcut in any app and a small menu opens at the mouse pointer. Pick an item (arrow keys + Enter, type to search, or click) and it's pasted straight into the field you were typing in.
 - **Short codes.** Type `:gh`, `:li` or `:x` anywhere and it's replaced with the full value, like a text expander.
 - **2FA codes.** Add a site's two-factor secret key (or import its QR code from a screenshot) and QuickFill pastes the current 6-digit code, like an authenticator app.
+- **Password + 2FA.** For logins such as VPNs that want your password and code typed together, one shortcut pastes the password followed by the current code (`hunter2` + `481717` → `hunter2481717`).
 - **Clipboard-safe.** Whatever you had copied is restored after each paste.
 - **Lives in the tray.** It can start with Windows, and short codes can be paused from the tray menu.
 - **Private.** Data stays on your PC, encrypted with Windows DPAPI (tied to your Windows account).
@@ -30,8 +31,9 @@ The installer isn't code-signed yet, so Windows SmartScreen may warn you: click 
 ## Usage
 
 1. Open QuickFill from the tray and add items: a label (`GitHub`), a value (your URL) and an optional short code (`:gh`). Click **Save**.
-2. For 2FA: when a site shows its two-factor QR code, open the **2FA codes** card and click **+ Add 2FA**. Then either paste the secret key (the "can't scan it?" text), or snip the QR with `Win+Shift+S` and press `Ctrl+V` in the row (or click **QR** to pick an image file). Check that the code shown matches what the site expects, then click **Save**.
-3. In any text field, press the popup shortcut (default `Ctrl+Alt+Space`; change it in Settings), or type a short code.
+2. For 2FA: when a site shows its two-factor QR code, open the **2FA codes** card and click **+ Add 2FA**. Then either paste the secret key (the "can't scan it?" text), or snip the QR with `Win+Shift+S` and press `Ctrl+V` in the row (or click **Import QR image** to pick a file). Check that the code shown matches what the site expects, then click **Save**.
+3. For a password plus a 2FA code in one field: in the **Password + 2FA** card, click **+ Add password + 2FA** and fill in the password and the 2FA secret the same way. Both are required.
+4. In any text field, press the popup shortcut (default `Ctrl+Alt+Space`; change it in Settings), or type a short code.
 
 Short-code rules: 2–16 characters, no spaces, unique, and no code may be the start of another (e.g. `:g` and `:gh` can't both exist).
 
@@ -68,7 +70,7 @@ Tauri v2 (Rust) + React + TypeScript. The Win32 APIs (via the `windows` crate) h
 | `src-tauri/src/expander.rs` | Short codes (keyboard hook) |
 | `src-tauri/src/store.rs`, `crypto.rs` | Encrypted storage and validation |
 | `src-tauri/src/totp.rs` | 2FA code generation (RFC 6238) |
-| `src/manager/TwoFactor.tsx`, `qr.ts` | 2FA card and QR import |
+| `src/manager/TwoFactor.tsx`, `qr.ts` | 2FA and Password + 2FA cards, QR import |
 
 ## License
 

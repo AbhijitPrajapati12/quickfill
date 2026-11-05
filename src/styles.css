@@ -334,6 +334,16 @@ button.totp-code:hover:not(:disabled) {
   letter-spacing: 0;
 }
 
+/* Stands in for the password on Password + 2FA entries. */
+.totp-prefix {
+  margin-right: 8px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
 .countdown {
   display: block;
 }

@@ -20,6 +20,9 @@ pub struct Item {
     pub code: Option<String>,
     #[serde(default)]
     pub kind: ItemKind,
+    /// The 2FA secret of a `PasswordTotp` item (its `value` is the password).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub secret: Option<String>,
 }
 
 /// `Text` is a one-line value (a link, an id); `Template` is free-form
@@ -32,12 +35,19 @@ pub enum ItemKind {
     Text,
     Template,
     Totp,
+    /// A password plus a 2FA secret; pastes the password followed directly by
+    /// the current code (what most VPN logins expect).
+    PasswordTotp,
 }
 
 /// The text to paste for an item: its value, or for 2FA items the current code.
 pub fn output(item: &Item) -> Result<String, String> {
     match item.kind {
         ItemKind::Totp => totp::now(&item.value).map(|(code, ..)| code),
+        ItemKind::PasswordTotp => {
+            let secret = item.secret.as_deref().unwrap_or_default();
+            totp::now(secret).map(|(code, ..)| format!("{}{code}", item.value))
+        }
         _ => Ok(item.value.clone()),
     }
 }
@@ -73,6 +83,7 @@ impl Default for Data {
                 value: "https://github.com/".into(),
                 code: Some(":gh".into()),
                 kind: ItemKind::Text,
+                secret: None,
             }],
             settings: Settings {
                 hotkey: DEFAULT_HOTKEY.into(),
@@ -133,8 +144,16 @@ pub fn normalize(items: Vec<Item>) -> Vec<Item> {
                 // A one-line field can't hold line breaks; drop any that slipped in.
                 ItemKind::Text => item.value = item.value.replace(['\r', '\n'], ""),
                 ItemKind::Totp => item.value = item.value.trim().to_string(),
+                ItemKind::PasswordTotp => {
+                    // Passwords keep their spaces; only line breaks are dropped.
+                    item.value = item.value.replace(['\r', '\n'], "");
+                }
                 ItemKind::Template => {}
             }
+            item.secret = match item.kind {
+                ItemKind::PasswordTotp => item.secret.map(|s| s.trim().to_string()),
+                _ => None,
+            };
             if item.id.is_empty() {
                 item.id = new_id();
             }
@@ -153,6 +172,13 @@ pub fn validate(items: &[Item]) -> Result<(), String> {
         }
         if item.kind == ItemKind::Totp {
             totp::parse(&item.value).map_err(|e| format!("{}: {e}", item.label))?;
+        }
+        if item.kind == ItemKind::PasswordTotp {
+            if item.value.is_empty() {
+                return Err(format!("{}: enter the password.", item.label));
+            }
+            totp::parse(item.secret.as_deref().unwrap_or_default())
+                .map_err(|e| format!("{}: {e}", item.label))?;
         }
         let Some(code) = &item.code else { continue };
         let len = code.chars().count();
@@ -192,6 +218,7 @@ mod tests {
             value: "v".into(),
             code: code.map(Into::into),
             kind: ItemKind::Text,
+            secret: None,
         }
     }
 
@@ -224,6 +251,24 @@ mod tests {
         let mut bad = good;
         bad.value = "not a key!".into();
         assert!(validate(&[bad]).is_err());
+    }
+
+    #[test]
+    fn validates_password_totp() {
+        let mut vpn = item("VPN", Some(":vpn"));
+        vpn.kind = ItemKind::PasswordTotp;
+        vpn.value = "hunter2".into();
+        vpn.secret = Some("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".into());
+        assert!(validate(&[vpn.clone()]).is_ok());
+        let out = output(&vpn).unwrap();
+        assert!(out.starts_with("hunter2") && out.len() == "hunter2".len() + 6);
+
+        let mut no_password = vpn.clone();
+        no_password.value.clear();
+        assert!(validate(&[no_password]).is_err());
+        let mut no_secret = vpn.clone();
+        no_secret.secret = None;
+        assert!(validate(&[no_secret]).is_err());
     }
 
     #[test]

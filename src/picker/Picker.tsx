@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
-import { api, type Item, type Snapshot } from "../api";
+import { api, isSecretKind, type Item, type Snapshot } from "../api";
 
 export default function Picker() {
   const [items, setItems] = useState<Item[]>([]);
@@ -32,8 +32,8 @@ export default function Picker() {
     return items.filter(
       (i) =>
         i.label.toLowerCase().includes(q) ||
-        // Never match against a 2FA secret.
-        (i.kind !== "totp" && i.value.toLowerCase().includes(q)) ||
+        // Never match against a password or 2FA secret.
+        (!isSecretKind(i.kind) && i.value.toLowerCase().includes(q)) ||
         (i.code ?? "").toLowerCase().includes(q),
     );
   }, [items, query]);
@@ -106,6 +106,7 @@ export default function Picker() {
               <span className="picker-label">{item.label}</span>
               {item.kind === "template" && <span className="picker-tag">template</span>}
               {item.kind === "totp" && <span className="picker-tag">2FA</span>}
+              {item.kind === "passwordTotp" && <span className="picker-tag">pass+2FA</span>}
             </li>
           ))}
         </ul>

@@ -2,9 +2,14 @@ import { invoke } from "@tauri-apps/api/core";
 
 /**
  * "text" is a one-line value; "template" is multi-line (emails, notes);
- * "totp" holds a 2FA secret and pastes the current one-time code.
+ * "totp" holds a 2FA secret and pastes the current one-time code;
+ * "passwordTotp" holds a password (value) and a 2FA secret (secret) and
+ * pastes the password followed by the code.
  */
-export type ItemKind = "text" | "template" | "totp";
+export type ItemKind = "text" | "template" | "totp" | "passwordTotp";
+
+/** Kinds that hold secrets: shown in their own cards, never searched by value. */
+export const isSecretKind = (kind?: ItemKind) => kind === "totp" || kind === "passwordTotp";
 
 export interface TotpPreview {
   code: string;
@@ -20,6 +25,8 @@ export interface Item {
   value: string;
   code?: string | null;
   kind?: ItemKind;
+  /** The 2FA secret of a "passwordTotp" item. */
+  secret?: string | null;
 }
 
 export interface Settings {
