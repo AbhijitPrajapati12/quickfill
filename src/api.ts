@@ -1,7 +1,18 @@
 import { invoke } from "@tauri-apps/api/core";
 
-/** "text" is a one-line value; "template" is multi-line (emails, notes). */
-export type ItemKind = "text" | "template";
+/**
+ * "text" is a one-line value; "template" is multi-line (emails, notes);
+ * "totp" holds a 2FA secret and pastes the current one-time code.
+ */
+export type ItemKind = "text" | "template" | "totp";
+
+export interface TotpPreview {
+  code: string;
+  /** Seconds until the code changes. */
+  remaining: number;
+  /** Seconds each code lasts (usually 30). */
+  period: number;
+}
 
 export interface Item {
   id: string;
@@ -31,6 +42,7 @@ export const api = {
   setCodesEnabled: (enabled: boolean) => invoke<Snapshot>("set_codes_enabled", { enabled }),
   pasteItem: (id: string) => invoke<void>("paste_item", { id }),
   hidePicker: () => invoke<void>("hide_picker"),
+  totpPreview: (secret: string) => invoke<TotpPreview>("totp_preview", { secret }),
 };
 
 /** Tauri rejects with the Rust error string; normalize anything else. */

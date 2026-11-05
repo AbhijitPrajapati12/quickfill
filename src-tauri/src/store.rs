@@ -6,7 +6,7 @@ use std::path::Path;
 
 use serde::{Deserialize, Serialize};
 
-use crate::crypto;
+use crate::{crypto, totp};
 
 pub const DEFAULT_HOTKEY: &str = "Ctrl+Alt+Space";
 
@@ -23,13 +23,23 @@ pub struct Item {
 }
 
 /// `Text` is a one-line value (a link, an id); `Template` is free-form
-/// multi-line text such as an email or notes.
+/// multi-line text such as an email or notes; `Totp` holds a 2FA secret and
+/// pastes the current one-time code.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub enum ItemKind {
     #[default]
     Text,
     Template,
+    Totp,
+}
+
+/// The text to paste for an item: its value, or for 2FA items the current code.
+pub fn output(item: &Item) -> Result<String, String> {
+    match item.kind {
+        ItemKind::Totp => totp::now(&item.value).map(|(code, ..)| code),
+        _ => Ok(item.value.clone()),
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -119,9 +129,11 @@ pub fn normalize(items: Vec<Item>) -> Vec<Item> {
                 .code
                 .map(|c| c.trim().to_string())
                 .filter(|c| !c.is_empty());
-            if item.kind == ItemKind::Text {
+            match item.kind {
                 // A one-line field can't hold line breaks; drop any that slipped in.
-                item.value = item.value.replace(['\r', '\n'], "");
+                ItemKind::Text => item.value = item.value.replace(['\r', '\n'], ""),
+                ItemKind::Totp => item.value = item.value.trim().to_string(),
+                ItemKind::Template => {}
             }
             if item.id.is_empty() {
                 item.id = new_id();
@@ -138,6 +150,9 @@ pub fn validate(items: &[Item]) -> Result<(), String> {
     for item in items {
         if item.label.is_empty() {
             return Err("Every item needs a label.".into());
+        }
+        if item.kind == ItemKind::Totp {
+            totp::parse(&item.value).map_err(|e| format!("{}: {e}", item.label))?;
         }
         let Some(code) = &item.code else { continue };
         let len = code.chars().count();
@@ -197,6 +212,18 @@ mod tests {
         assert!(validate(&[item("A", Some(": g"))]).is_err());
         assert!(validate(&[item("A", Some(":"))]).is_err());
         assert!(validate(&[item("", None)]).is_err());
+    }
+
+    #[test]
+    fn validates_totp_secrets() {
+        let mut good = item("Bank", Some(":2fa"));
+        good.kind = ItemKind::Totp;
+        good.value = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ".into();
+        assert!(validate(&[good.clone()]).is_ok());
+        assert_eq!(output(&good).unwrap().len(), 6);
+        let mut bad = good;
+        bad.value = "not a key!".into();
+        assert!(validate(&[bad]).is_err());
     }
 
     #[test]

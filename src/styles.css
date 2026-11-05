@@ -52,6 +52,7 @@ button {
 }
 
 input[type="text"],
+input[type="password"],
 input:not([type]) {
   width: 100%;
   padding: 7px 10px;
@@ -62,7 +63,8 @@ input:not([type]) {
   user-select: text;
 }
 
-input:not([type]):focus {
+input:not([type]):focus,
+input[type="password"]:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-soft);
 }
@@ -247,6 +249,176 @@ kbd {
 
 .template-editor::placeholder {
   color: var(--muted);
+}
+
+/* ---------- 2FA card ---------- */
+
+.card-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.card-title h2 {
+  margin: 0;
+}
+
+.card-hint {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.twofa-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.twofa-entry {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.twofa-entry.open {
+  border-color: var(--muted);
+}
+
+.twofa-main {
+  display: grid;
+  grid-template-columns: 24px 1fr auto 90px auto;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 8px 8px 12px;
+}
+
+.twofa-main input.twofa-label {
+  font-weight: 600;
+}
+
+/* Row buttons are icon-sized by default; "Edit key" needs room for its text. */
+.twofa-main .row-actions button.subtle {
+  width: auto;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.totp-code {
+  min-width: 128px;
+  padding: 2px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 22px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-align: right;
+  white-space: nowrap;
+}
+
+button.totp-code:hover:not(:disabled) {
+  background: var(--accent-soft);
+}
+
+.totp-code.expiring {
+  color: var(--danger);
+}
+
+.totp-code.placeholder {
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0;
+}
+
+.countdown {
+  display: block;
+}
+
+.countdown circle {
+  fill: none;
+  stroke-width: 3;
+}
+
+.countdown-track {
+  stroke: var(--border);
+}
+
+.countdown-fill {
+  stroke: var(--accent);
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.3s linear;
+}
+
+.countdown.expiring .countdown-fill {
+  stroke: var(--danger);
+}
+
+button.subtle {
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+button.subtle.active,
+button.subtle:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.twofa-key {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.twofa-or {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.twofa-tip {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.twofa-tip kbd {
+  font-size: 11px;
+}
+
+.secret-field {
+  position: relative;
+  min-width: 0;
+}
+
+.secret-field input {
+  padding-right: 56px;
+}
+
+.secret-field button.icon {
+  position: absolute;
+  top: 50%;
+  right: 4px;
+  transform: translateY(-50%);
+  padding: 2px 8px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.secret-field button.icon:hover {
+  color: var(--text);
+}
+
+.twofa .items-foot {
+  margin-top: 12px;
 }
 
 /* ---------- Template page ---------- */

@@ -9,6 +9,7 @@ mod paste;
 mod picker;
 mod state;
 mod store;
+mod totp;
 
 use std::sync::atomic::AtomicIsize;
 use std::sync::Mutex;
@@ -102,6 +103,7 @@ fn main() {
             commands::set_codes_enabled,
             commands::paste_item,
             commands::hide_picker,
+            commands::totp_preview,
         ])
         .run(tauri::generate_context!())
         .expect("error while running QuickFill");

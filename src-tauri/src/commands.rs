@@ -2,12 +2,13 @@
 
 use std::sync::atomic::Ordering;
 
+use serde::Serialize;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_autostart::ManagerExt;
 
 use crate::state::{AppState, Snapshot};
 use crate::store::{self, Item};
-use crate::{expander, hotkey, paste, picker};
+use crate::{expander, hotkey, paste, picker, totp};
 
 #[tauri::command]
 pub fn get_data(state: State<AppState>) -> Snapshot {
@@ -68,14 +69,14 @@ pub fn apply_codes_enabled(app: &AppHandle, enabled: bool) -> Result<(), String>
 #[tauri::command]
 pub async fn paste_item(app: AppHandle, id: String) -> Result<(), String> {
     let state = app.state::<AppState>();
-    let value = state
+    let item = state
         .data
         .lock()
         .unwrap()
         .items
         .iter()
         .find(|i| i.id == id)
-        .map(|i| i.value.clone())
+        .cloned()
         .ok_or("Item not found")?;
     let prev = state.prev_hwnd.load(Ordering::SeqCst);
 
@@ -86,10 +87,26 @@ pub async fn paste_item(app: AppHandle, id: String) -> Result<(), String> {
             let _ = picker.hide();
         }
         paste::focus_window(prev);
-        paste::paste_text(&value)
+        // Resolved at the last moment so a 2FA code is as fresh as possible.
+        paste::paste_text(&store::output(&item)?)
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+#[derive(Serialize)]
+pub struct TotpPreview {
+    code: String,
+    remaining: u64,
+    period: u64,
+}
+
+/// The current code for a secret being typed in the manager, so the user can
+/// check it against their authenticator app before saving.
+#[tauri::command]
+pub fn totp_preview(secret: String) -> Result<TotpPreview, String> {
+    let (code, remaining, period) = totp::now(&secret)?;
+    Ok(TotpPreview { code, remaining, period })
 }
 
 #[tauri::command]

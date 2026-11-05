@@ -3,7 +3,11 @@ import { listen } from "@tauri-apps/api/event";
 import { api, errorText, type Item, type ItemKind, type Snapshot } from "../api";
 import Settings from "./Settings";
 import TemplateEditor from "./TemplateEditor";
+import TwoFactor from "./TwoFactor";
 import { displayHotkey } from "./HotkeyRecorder";
+
+/** 2FA items live in their own card; this list holds links and templates. */
+const listed = (items: Item[]) => items.filter((i) => i.kind !== "totp");
 
 export default function Manager() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
@@ -17,7 +21,7 @@ export default function Manager() {
   useEffect(() => {
     api.getData().then((s) => {
       setSnapshot(s);
-      setItems(s.items);
+      setItems(listed(s.items));
     });
     // Settings can change from the tray menu; keep unsaved item edits intact.
     const unlisten = listen<Snapshot>("data:changed", ({ payload }) =>
@@ -52,9 +56,11 @@ export default function Manager() {
   };
 
   const persist = async (list: Item[]) => {
-    const s = await api.saveItems(list);
+    // Keep 2FA items as last saved; that card has its own Save button.
+    const totp = snapshot?.items.filter((i) => i.kind === "totp") ?? [];
+    const s = await api.saveItems([...list, ...totp]);
     setSnapshot(s);
-    setItems(s.items);
+    setItems(listed(s.items));
     setDirty(false);
     setError(null);
     setSaved(true);
@@ -66,7 +72,7 @@ export default function Manager() {
     } catch (e) {
       setError(errorText(e));
     }
-  }, [items]);
+  }, [items, snapshot]);
 
   /** Saves the template page's draft (and any other pending edits), then returns to the list. */
   const saveTemplate = async (draft: Item) => {
@@ -209,6 +215,8 @@ export default function Manager() {
           </div>
         </div>
       </section>
+
+      <TwoFactor snapshot={snapshot} onUpdate={setSnapshot} />
 
       <Settings snapshot={snapshot} onUpdate={setSnapshot} />
     </main>

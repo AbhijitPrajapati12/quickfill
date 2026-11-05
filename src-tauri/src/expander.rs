@@ -31,12 +31,12 @@ use windows::Win32::UI::WindowsAndMessaging::{
 };
 
 use crate::paste;
-use crate::store::Item;
+use crate::store::{self, Item};
 
 const BUFFER_LEN: usize = 32;
 
-/// (code, value) pairs the hook matches against.
-static CODES: RwLock<Vec<(String, String)>> = RwLock::new(Vec::new());
+/// (code, item) pairs the hook matches against.
+static CODES: RwLock<Vec<(String, Item)>> = RwLock::new(Vec::new());
 /// Hands matches from the hook thread to the worker that does the typing.
 static WORKER: OnceLock<Sender<Expansion>> = OnceLock::new();
 /// Thread id of the running hook thread (0 = not running).
@@ -44,7 +44,7 @@ static HOOK_THREAD: AtomicU32 = AtomicU32::new(0);
 
 struct Expansion {
     erase: usize,
-    value: String,
+    item: Item,
 }
 
 thread_local! {
@@ -55,8 +55,8 @@ thread_local! {
 pub fn set_codes(items: &[Item]) {
     let codes = items
         .iter()
-        .filter_map(|i| i.code.clone().map(|c| (c, i.value.clone())))
-        .filter(|(_, value)| !value.is_empty())
+        .filter(|i| !i.value.is_empty())
+        .filter_map(|i| i.code.clone().map(|c| (c, i.clone())))
         .collect();
     *CODES.write().unwrap() = codes;
 }
@@ -123,7 +123,9 @@ fn spawn_worker() -> Sender<Expansion> {
             sleep(Duration::from_millis(40));
             paste::send_backspaces(job.erase);
             sleep(Duration::from_millis(20));
-            if let Err(e) = paste::paste_text(&job.value) {
+            // Resolved now, not when saved, so a 2FA code is current.
+            let result = store::output(&job.item).and_then(|text| paste::paste_text(&text));
+            if let Err(e) = result {
                 eprintln!("QuickFill: short code paste failed: {e}");
             }
         }
@@ -204,7 +206,7 @@ fn on_key_down(vk: u32, scan: u32) {
         codes
             .iter()
             .find(|(code, _)| buffer.ends_with(code.as_str()))
-            .map(|(code, value)| Expansion { erase: code.chars().count(), value: value.clone() })
+            .map(|(code, item)| Expansion { erase: code.chars().count(), item: item.clone() })
     });
 
     if let Some(job) = matched {
