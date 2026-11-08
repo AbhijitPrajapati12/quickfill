@@ -57,6 +57,16 @@ pnpm tauri build   # installer in src-tauri/target/release/bundle/nsis/
 
 Run these from PowerShell or a Developer prompt, so the MSVC linker can be found.
 
+## Releasing
+
+```bash
+pnpm release 0.2.0            # or: patch | minor | major
+```
+
+This bumps the version in `package.json`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.toml` and `Cargo.lock`, commits `Release v0.2.0`, tags `v0.2.0` and pushes. The tag starts the [Release workflow](.github/workflows/release.yml), which builds the installer on GitHub and publishes it as a release (about 10 minutes). The website's Download button picks up the new version within an hour.
+
+Add `--dry-run` to preview without changing anything, or `--no-push` to commit and tag locally only. The script refuses to run with uncommitted changes or a version that isn't newer than the current one.
+
 ## Tech
 
 Tauri v2 (Rust) + React + TypeScript. The Win32 APIs (via the `windows` crate) handle the popup placement, focus restore, `SendInput` paste, the low-level keyboard hook and DPAPI encryption.
