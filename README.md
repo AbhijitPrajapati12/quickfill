@@ -61,8 +61,8 @@ Requirements: Windows 10/11, [Node.js](https://nodejs.org) + [pnpm](https://pnpm
 
 ```bash
 pnpm install
-pnpm tauri dev     # run in development
-pnpm tauri build   # installer in src-tauri/target/release/bundle/nsis/
+pnpm app:dev       # run in development (same as: pnpm tauri dev)
+pnpm app:build     # installer in src-tauri/target/release/bundle/nsis/ (same as: pnpm tauri build)
 ```
 
 Run these from PowerShell or a Developer prompt, so the MSVC linker can be found.
