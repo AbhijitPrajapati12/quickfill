@@ -48,6 +48,8 @@ fn main() {
             let handle = app.handle().clone();
             let path = app.path().app_data_dir()?.join("data.bin");
             let (mut data, first_run) = store::load(&path);
+            // Codes saved before ":" was required get it added (and saved below).
+            let migrated = store::migrate_codes(&mut data.items);
 
             // The Run key is the source of truth for start-with-Windows.
             data.settings.autostart = handle.autolaunch().is_enabled().unwrap_or(false);
@@ -57,7 +59,7 @@ fn main() {
             let hotkey = data.settings.hotkey.clone();
             let codes_enabled = data.settings.codes_enabled;
 
-            if first_run {
+            if first_run || migrated {
                 let _ = store::save(&path, &data);
             }
             app.manage(AppState {

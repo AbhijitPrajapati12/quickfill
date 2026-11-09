@@ -478,6 +478,27 @@ button.subtle:hover:not(:disabled) {
   font-family: "Cascadia Code", Consolas, monospace !important;
 }
 
+/* Short-code field: a fixed ":" sits inside the input, before what the user types. */
+.code-field {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+.code-prefix {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: "Cascadia Code", Consolas, monospace;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.code-field .code-input {
+  padding-left: 20px;
+}
+
 .row-actions {
   display: flex;
   gap: 4px;

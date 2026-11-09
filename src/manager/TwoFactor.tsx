@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, errorText, type Item, type Snapshot, type TotpPreview } from "../api";
+import CodeInput from "./CodeInput";
 import { decodeQrImage, labelFromLink, toTotpLink } from "./qr";
 
 export type TwoFactorKind = "totp" | "passwordTotp";
@@ -220,13 +221,11 @@ export default function TwoFactor({ snapshot, onUpdate, kind }: Props) {
                     {typeof preview === "string" ? "Invalid key" : "––– –––"}
                   </span>
                 )}
-                <input
-                  className="code-input"
-                  value={entry.code ?? ""}
-                  placeholder={withPassword ? ":vpn" : ":2fa"}
+                <CodeInput
+                  code={entry.code}
+                  placeholder={withPassword ? "vpn" : "2fa"}
                   title="Short code"
-                  spellCheck={false}
-                  onChange={(e) => update(entry.id, { code: e.target.value })}
+                  onChange={(code) => update(entry.id, { code })}
                 />
                 <div className="row-actions">
                   <button

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { Item } from "../api";
+import CodeInput from "./CodeInput";
 
 interface Props {
   initial: Item;
@@ -73,12 +74,10 @@ export default function TemplateEditor({ initial, isNew, onSave, onCancel }: Pro
           </label>
           <label className="template-code">
             <span>Short code</span>
-            <input
-              className="code-input"
-              value={draft.code ?? ""}
-              placeholder=":mail"
-              spellCheck={false}
-              onChange={(e) => setDraft({ ...draft, code: e.target.value })}
+            <CodeInput
+              code={draft.code}
+              placeholder="mail"
+              onChange={(code) => setDraft({ ...draft, code })}
             />
           </label>
         </div>

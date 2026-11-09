@@ -45,7 +45,7 @@ The installer isn't code-signed yet, so Windows SmartScreen may warn you: click 
 3. For a password plus a 2FA code in one field: in the **Password + 2FA** card, click **+ Add password + 2FA** and fill in the password and the 2FA secret the same way. Both are required.
 4. In any text field, press the popup shortcut (default `Ctrl+Alt+Space`; change it in Settings), or type a short code.
 
-Short-code rules: 2–16 characters, no spaces, unique, and no code may be the start of another (e.g. `:g` and `:gh` can't both exist).
+Short-code rules: every code starts with `:` (the field adds it for you, so you type just `gh`). After the `:` come 1–15 characters with no spaces. Codes must be unique, and no code may be the start of another (e.g. `:g` and `:gh` can't both exist). The `:` keeps codes from firing inside ordinary words, so `:gh` never expands while you type "high" or "though". Codes saved without a `:` in older versions get one added automatically.
 
 ## Known limitations
 

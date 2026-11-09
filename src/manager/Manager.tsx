@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { api, errorText, isSecretKind, type Item, type ItemKind, type Snapshot } from "../api";
+import CodeInput from "./CodeInput";
 import Settings from "./Settings";
 import TemplateEditor from "./TemplateEditor";
 import TwoFactor from "./TwoFactor";
@@ -120,7 +121,7 @@ export default function Manager() {
           <h1>QuickFill</h1>
           <p className="subtitle">
             Press <kbd>{displayHotkey(snapshot.settings.hotkey)}</kbd> in any text field, or type a
-            short code.
+            short code starting with <kbd>:</kbd>, like <kbd>:gh</kbd>.
           </p>
         </div>
       </header>
@@ -164,12 +165,10 @@ export default function Manager() {
                   onChange={(e) => update(index, { value: e.target.value })}
                 />
               )}
-              <input
-                className="code-input"
-                value={item.code ?? ""}
-                placeholder={isTemplate ? ":mail" : ":gh"}
-                spellCheck={false}
-                onChange={(e) => update(index, { code: e.target.value })}
+              <CodeInput
+                code={item.code}
+                placeholder={isTemplate ? "mail" : "gh"}
+                onChange={(code) => update(index, { code })}
               />
               <div className="row-actions">
                 <button title="Move up" disabled={index === 0} onClick={() => move(index, -1)}>

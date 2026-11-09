@@ -130,7 +130,33 @@ pub fn save(path: &Path, data: &Data) -> Result<(), String> {
     fs::rename(&tmp, path).map_err(|e| format!("Couldn't replace data file: {e}"))
 }
 
-/// Trims fields, turns blank codes into `None` and fills in missing ids.
+/// Every short code starts with this, so codes never fire inside ordinary
+/// words (a plain `gh` would expand while typing "high" or "though").
+pub const CODE_PREFIX: char = ':';
+
+/// Adds the `:` prefix to codes saved before it was required. A code is left
+/// as it was when the prefixed form is already taken, so the user can rename
+/// one of them. Returns whether anything changed.
+pub fn migrate_codes(items: &mut [Item]) -> bool {
+    let mut taken: HashSet<String> = items.iter().filter_map(|i| i.code.clone()).collect();
+    let mut changed = false;
+    for item in items.iter_mut() {
+        let Some(code) = &item.code else { continue };
+        if code.starts_with(CODE_PREFIX) {
+            continue;
+        }
+        let prefixed = format!("{CODE_PREFIX}{code}");
+        if !taken.contains(&prefixed) {
+            taken.insert(prefixed.clone());
+            item.code = Some(prefixed);
+            changed = true;
+        }
+    }
+    changed
+}
+
+/// Trims fields, turns blank codes into `None`, makes sure codes start with
+/// `:` and fills in missing ids.
 pub fn normalize(items: Vec<Item>) -> Vec<Item> {
     items
         .into_iter()
@@ -138,8 +164,9 @@ pub fn normalize(items: Vec<Item>) -> Vec<Item> {
             item.label = item.label.trim().to_string();
             item.code = item
                 .code
-                .map(|c| c.trim().to_string())
-                .filter(|c| !c.is_empty());
+                .map(|c| c.trim().trim_start_matches(CODE_PREFIX).to_string())
+                .filter(|c| !c.is_empty())
+                .map(|c| format!("{CODE_PREFIX}{c}"));
             match item.kind {
                 // A one-line field can't hold line breaks; drop any that slipped in.
                 ItemKind::Text => item.value = item.value.replace(['\r', '\n'], ""),
@@ -162,8 +189,9 @@ pub fn normalize(items: Vec<Item>) -> Vec<Item> {
         .collect()
 }
 
-/// Checks labels and short codes. Codes must be 2–16 characters without spaces,
-/// unique, and no code may be the start of another (it would always fire first).
+/// Checks labels and short codes. Codes are `:` plus 1–15 characters without
+/// spaces, unique, and no code may be the start of another (it would always
+/// fire first).
 pub fn validate(items: &[Item]) -> Result<(), String> {
     let mut seen = HashSet::new();
     for item in items {
@@ -181,9 +209,15 @@ pub fn validate(items: &[Item]) -> Result<(), String> {
                 .map_err(|e| format!("{}: {e}", item.label))?;
         }
         let Some(code) = &item.code else { continue };
-        let len = code.chars().count();
-        if !(2..=16).contains(&len) {
-            return Err(format!("{}: short code must be 2–16 characters.", item.label));
+        let Some(rest) = code.strip_prefix(CODE_PREFIX) else {
+            return Err(format!("{}: short code must start with {CODE_PREFIX}", item.label));
+        };
+        let len = rest.chars().count();
+        if !(1..=15).contains(&len) {
+            return Err(format!(
+                "{}: short code needs 1–15 characters after the {CODE_PREFIX}",
+                item.label
+            ));
         }
         if code.chars().any(char::is_whitespace) {
             return Err(format!("{}: short code can't contain spaces.", item.label));
@@ -269,6 +303,41 @@ mod tests {
         let mut no_secret = vpn.clone();
         no_secret.secret = None;
         assert!(validate(&[no_secret]).is_err());
+    }
+
+    #[test]
+    fn requires_colon_prefix() {
+        assert!(validate(&[item("A", Some("gh"))]).is_err());
+        assert!(validate(&[item("A", Some(":g"))]).is_ok());
+        assert!(validate(&[item("A", Some(":123456789012345"))]).is_ok()); // 15 after ":"
+        assert!(validate(&[item("A", Some(":1234567890123456"))]).is_err()); // 16 after ":"
+    }
+
+    #[test]
+    fn normalize_adds_colon_once() {
+        let out = normalize(vec![
+            item("A", Some("gh")),
+            item("B", Some(" ::li ")),
+            item("C", Some(":x")),
+            item("D", Some(":")),
+        ]);
+        let codes: Vec<_> = out.iter().map(|i| i.code.as_deref()).collect();
+        assert_eq!(codes, [Some(":gh"), Some(":li"), Some(":x"), None]);
+    }
+
+    #[test]
+    fn migrate_prefixes_old_codes_but_not_clashes() {
+        let mut items = vec![
+            item("GitHub", Some("gh")),
+            item("LinkedIn", Some("li")),
+            item("Existing", Some(":li")),
+            item("NoCode", None),
+        ];
+        assert!(migrate_codes(&mut items));
+        let codes: Vec<_> = items.iter().map(|i| i.code.as_deref()).collect();
+        // "li" stays as it was because ":li" is already taken; the user renames one.
+        assert_eq!(codes, [Some(":gh"), Some("li"), Some(":li"), None]);
+        assert!(!migrate_codes(&mut items[..1]), "already prefixed codes are left alone");
     }
 
     #[test]
