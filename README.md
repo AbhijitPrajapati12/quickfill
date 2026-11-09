@@ -10,7 +10,7 @@
   <a href="https://github.com/AbhijitPrajapati12/quickfill/releases"><img src="https://img.shields.io/github/downloads/AbhijitPrajapati12/quickfill/total?label=downloads&color=4c1" alt="Downloads" /></a>
   <a href="https://github.com/AbhijitPrajapati12/quickfill/releases/latest"><img src="https://img.shields.io/github/v/release/AbhijitPrajapati12/quickfill?label=release&color=0a7bbb" alt="Latest release" /></a>
   <a href="https://github.com/AbhijitPrajapati12/quickfill/actions/workflows/release.yml"><img src="https://img.shields.io/github/actions/workflow/status/AbhijitPrajapati12/quickfill/release.yml?label=build&logo=github" alt="Release build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/AbhijitPrajapati12/quickfill?label=license&color=0a7bbb" alt="License: MIT" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/AbhijitPrajapati12/quickfill?label=license&color=0a7bbb" alt="License: Apache 2.0" /></a>
   <a href="https://v2.tauri.app"><img src="https://img.shields.io/badge/Tauri-2-24C8D8?logo=tauri&logoColor=white" alt="Tauri 2" /></a>
   <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011-0078D6" alt="Windows 10 and 11" />
   <a href="https://quickfill-app.vercel.app"><img src="https://img.shields.io/badge/website-quickfill--app.vercel.app-7c3aed" alt="Website" /></a>
@@ -94,4 +94,6 @@ Tauri v2 (Rust) + React + TypeScript. The Win32 APIs (via the `windows` crate) h
 
 ## License
 
-MIT
+[Apache License 2.0](LICENSE). See [NOTICE](NOTICE).
+
+Releases up to and including v0.2.0 were published under the MIT License.

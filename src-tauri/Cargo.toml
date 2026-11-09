@@ -2,6 +2,7 @@
 name = "quickfill"
 version = "0.2.0"
 description = "Paste your saved links and snippets anywhere with a hotkey or a short code"
+license = "Apache-2.0"
 edition = "2021"
 
 [build-dependencies]
